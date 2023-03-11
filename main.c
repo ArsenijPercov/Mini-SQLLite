@@ -31,7 +31,8 @@ typedef enum {
     PARSING_SUCCESS,
     PARSING_TOO_MANY_ARGUMENTS,
     PARSING_ERROR,
-    PARSING_TOO_LONG
+    PARSING_TOO_LONG,
+    PARSING_NEGATIVE_ID
 } ParsingResult;
 
 typedef enum{
@@ -39,7 +40,8 @@ typedef enum{
     PREPARE_UNKOWN,
     PREPARE_PARSING_TOO_LONG,
     PREPARE_PARSING_TOO_MANY_ARGUMENTS,
-    PREPARE_PARSING_FAILURE
+    PREPARE_PARSING_FAILURE,
+    PREPARE_NEGATIVE_ID
 } PrepareStatementResult;
 
 typedef enum{
@@ -178,7 +180,10 @@ ParsingResult parse_arguments_insert(InputBuffer* inputBuffer, Statement* statem
         return PARSING_ERROR;
     }
 
-    int id = atoi(id_string); //THIS IS VERY UNSAFE. IF WE PASS '0' or "RANDOM STEING", both would resolve to 0 
+    int id = atoi(id_string); //THIS IS VERY UNSAFE. IF WE PASS '0' or "RANDOM STEING", both would resolve to 0
+    if (id < 0){
+        return PARSING_NEGATIVE_ID;
+    } 
     if (strlen(user) > USERNAME_FIELD_LENGTH || strlen(email) > EMAIL_FIELD_LENGTH){
         return PARSING_TOO_LONG;
     }
@@ -208,6 +213,8 @@ PrepareStatementResult prepare_statement(InputBuffer* inputBuffer, Statement* st
                 return PREPARE_PARSING_TOO_MANY_ARGUMENTS;
             case(PARSING_ERROR):
                 return PREPARE_PARSING_FAILURE;
+            case(PARSING_NEGATIVE_ID):
+                return PREPARE_NEGATIVE_ID;
         }
 
         return PREPARE_SUCCESS;
@@ -279,6 +286,9 @@ int main(int argc, char* argv[]){
             case(PREPARE_PARSING_TOO_MANY_ARGUMENTS):
                 printf("Failed to parse query. Too many fields were provided.\n");
                 continue;
+            case(PREPARE_NEGATIVE_ID):
+                printf("Failed to parse the query. It contains a negative id.\n");
+                continue;
             case PARSING_SUCCESS:
                 break;
         }
@@ -286,7 +296,7 @@ int main(int argc, char* argv[]){
         if (execute_statement(table, statement) == EXECUTE_TABLE_FULL){
             printf("Cannot insert new data. Table is full.\n");
         } else {
-            printf("Executed %s.\n", inputBuffer->buffer);       
+            printf("Executed.\n");       
         }
 
         close_statement(statement);

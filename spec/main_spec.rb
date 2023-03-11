@@ -21,9 +21,9 @@ describe 'database' do
         ".exit",
       ])
       expect(result).to match_array([
-        "db > Executed insert 1 user1 person1@example.com.",
+        "db > Executed.",
         "db > {id:1, email:person1@example.com, user:user1 }",
-        "Executed select.",
+        "Executed.",
         "db > ",
       ])
     end
@@ -47,9 +47,9 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "db > Executed insert 1 #{user} person1@example.com.",
+            "db > Executed.",
             "db > {id:1, email:person1@example.com, user:#{user} }",
-            "Executed select.",
+            "Executed.",
             "db > ",
           ])
     end
@@ -61,9 +61,9 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "db > Executed insert 1 user1 #{email}.",
+            "db > Executed.",
             "db > {id:1, email:#{email}, user:user1 }",
-            "Executed select.",
+            "Executed.",
             "db > ",
           ])
     end
@@ -76,9 +76,9 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "db > Executed insert 1 #{user} #{email}.",
+            "db > Executed.",
             "db > {id:1, email:#{email}, user:#{user} }",
-            "Executed select.",
+            "Executed.",
             "db > ",
           ])
     end
@@ -91,9 +91,8 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "db > Executed insert 1 #{user} #{email}.",
-            "db > {id:1, email:#{email}, user:#{user} }",
-            "Executed select.",
+            "db > Executed.",
+            "db > Failed to parse query. The fields exceeded maximum length.",
             "db > ",
           ])
     end
@@ -106,9 +105,8 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "Failed to parse query. The fields exceeded maximum length.",
-            "db > {id:1, email:#{email}, user:#{user} }",
-            "Executed select.",
+            "db > Failed to parse query. The fields exceeded maximum length.",  
+            "db > Executed.", 
             "db > ",
           ])
     end
@@ -122,9 +120,9 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "Failed to parse query. The fields exceeded maximum length.",
-            "Executed select.",
             "db > ",
+            "db > Executed.", 
+            "db > Failed to parse query. The fields exceeded maximum length."
           ])
     end
 
@@ -138,23 +136,37 @@ describe 'database' do
             ".exit"
         ])
         expect(result).to match_array([
-            "Failed to parse query. Too many fields were provided.",
-            "Executed select.",
             "db > ",
+            "db > Executed.",
+            "db > Failed to parse query. Too many fields were provided."
           ])
     end
 
-    it 'doesnt allow id to be a string' do
+    it 'allows id to be a string, and defaults it to 0' do
 
         result = run_script([
             "insert aaa user1 email@c.c",
             "select",
             ".exit"
         ])
-        #TODO not sure what would be the correct response here
         expect(result).to match_array([ 
-            "db > Failed to parse arguments for query insert aaa user1 email@c.c",
-            "db > Executed select.",
+            "db > {id:0, email:email@c.c, user:user1 }",
+            "db > Executed.",
+            "db > ",
+            "Executed."
+          ])
+    end
+
+    it 'prints error when id is negative' do
+
+        result = run_script([
+            "insert -1 user1 email@c.c",
+            "select",
+            ".exit"
+        ])
+        expect(result).to match_array([ 
+            "db > Executed.",
+            "db > Failed to parse the query. It contains a negative id.",
             "db > ",
           ])
     end
@@ -165,9 +177,8 @@ describe 'database' do
             "select",
             ".exit"
         ])
-        #TODO not sure what would be the correct response here
         expect(result).to match_array([ 
-            "db > Executed select.",
+            "db > Executed.",
             "db > ",
           ])
     end
