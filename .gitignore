@@ -1046,3 +1046,8 @@ dkms.conf
 
 # VScode
 .vscode/
+
+# Other
+*.db
+mydb
+db-test
